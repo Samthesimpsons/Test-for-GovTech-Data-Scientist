@@ -1,5 +1,4 @@
 #################################### GETTING STARTED ####################################
-
 # To handle downloading of libaries for any new R users (like a custom pip installer)
 source("usePackages.R")
 pkgnames <-
@@ -16,16 +15,40 @@ pkgnames <-
   )
 loadPkgs(pkgnames)
 
-# reticulate::virtualenv_create("env", python = "python")
-# reticulate::virtualenv_install("env", packages = c("pandas"))
-# reticulate::use_virtualenv("env", required = TRUE)
-# reticulate::source_python("test.py")
+# Setting up python environment in R
+reticulate::virtualenv_create("env", python = "python")
+reticulate::virtualenv_install("env", packages = c("pandas"))
+reticulate::use_virtualenv("env", required = TRUE)
+reticulate::source_python("helper.py")
 
 #################################### HELPER FUNCTIONS ####################################
 # SQLite Connection
 getDBConnection <- function() {
   conn <- dbConnect(RSQLite::SQLite(), dbname = "champion.db")
   conn
+}
+
+# Extract the tables from DB
+getTeamInformation <- function() {
+  conn <- getDBConnection()
+  information <- dbReadTable(conn, "information")
+  dbDisconnect(conn)
+  information
+}
+
+getTeamMatches <- function() {
+  conn <- getDBConnection()
+  matches <- dbReadTable(conn, "matches")
+  dbDisconnect(conn)
+  matches
+}
+
+# Delete tables if exist for rerun
+deleteTables <- function() {
+  conn <- getDBConnection()
+  dbSendQuery(conn, "DROP TABLE IF EXISTS champion.information;")
+  dbSendQuery(conn, "DROP TABLE IF EXISTS champion.matches;")
+  dbDisconnect(conn)
 }
 
 # Modal to show error if the user types a wrong format or empty text input
@@ -40,6 +63,7 @@ WronginputModal <- function() {
         ))))
       ))
 }
+
 
 #################################### UI ####################################
 ui <- dashboardPage(
@@ -92,10 +116,10 @@ ui <- dashboardPage(
       column(
         width = 12,
         h2(strong("Results of Evaluation")),
-        dataTableOutput("table"),
+        tableOutput("table"),
         actionButton("clear_results",
                      h6(strong(
-                       "Step 3: Clear current run"
+                       "Reset Everything"
                      )),
                      style = "color: #fff; background-color: #AE0404; border-color: #AE0404")
       )
@@ -108,6 +132,7 @@ server <- function(input, output, session) {
   # Initialize server values: Only the output table values
   vals <- reactiveValues(result_values = NULL)
   
+  # Handle the reading of the multi-line text inputs and push to DB
   read_input_texts <- function(input_1, input_2) {
     # Try catch for invalid input handling
     tryCatch({
@@ -127,9 +152,8 @@ server <- function(input, output, session) {
       }
       
       # Remove any empty words
-      df_1 <- df_1[!apply(df_1 == "", 1, all),]
-      df_2 <- df_2[!apply(df_2 == "", 1, all),]
-      print(df_1)
+      df_1 <- df_1[!apply(df_1 == "", 1, all), ]
+      df_2 <- df_2[!apply(df_2 == "", 1, all), ]
       
       # Write to DB
       conn <- getDBConnection()
@@ -138,12 +162,15 @@ server <- function(input, output, session) {
                    df_1,
                    overwrite = TRUE,
                    row.names = FALSE)
-      dbDisconnect(conn)
+      print(df_1)
+      print("Sucess_1")
       dbWriteTable(conn,
                    "matches",
                    df_2,
                    overwrite = TRUE,
                    row.names = FALSE)
+      print(df_2)
+      print("Sucess_2")
       dbDisconnect(conn)
     },
     error = function(e) {
@@ -158,18 +185,27 @@ server <- function(input, output, session) {
   
   # Proceed with evaluation and output the results
   observeEvent(input$check_now, {
-    if(length(vals$result_values!=0)){
-            output$table <- renderDataTable(input$team_info)
-    }
+    information <- getTeamInformation()
+    matches <- getTeamMatches()
+    
+    # convert 3rd column of information to double
+    information[, 3] <- as.numeric(information[, 3])
+
+    # convert 3rd and 4th column of matches to double
+    matches[, 3] <- as.numeric(matches[, 3])
+    matches[, 4] <- as.numeric(matches[, 4])
+    
+    vals$result_values <- get_rankings(information, matches)
+    output$table <- renderTable(vals$result_values)
   })
   
   # Proceed to reset everything
   observeEvent(input$clear_results, {
-    updateTextInput(session,"team_info", value="")
-    updateTextInput(session,"team_matches", value="")
+    updateTextInput(session, "team_info", value = "")
+    updateTextInput(session, "team_matches", value = "")
     vals$result_values <- NULL
+    deleteTables()
   })
-  
 }
 
 shinyApp(ui, server)

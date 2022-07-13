@@ -94,18 +94,18 @@ def get_rankings(team_info, team_results):
 
     return group_df
 
-if __name__ == '__main__':
-    # Run our test cases (saved as a csv file) check the output if logic all correct
-    for i in range(3): 
-        if i == 0:
-            team_info = pd.read_csv('test_cases_csv\Test_case_1_info.csv', header=None)
-            team_results = pd.read_csv('test_cases_csv\Test_case_1_results.csv', header=None)
-            print(get_rankings(team_info, team_results))
-        elif i == 1:
-            team_info = pd.read_csv('test_cases_csv\Test_case_2_info.csv', header=None)
-            team_results = pd.read_csv('test_cases_csv\Test_case_2_results.csv', header=None)
-            get_rankings(team_info, team_results)
-        elif i == 2:
-            team_info = pd.read_csv('test_cases_csv\Test_case_3_info.csv', header=None)
-            team_results = pd.read_csv('test_cases_csv\Test_case_3_results.csv', header=None)
-            get_rankings(team_info, team_results)
+# if __name__ == '__main__':
+    # # Run our test cases (saved as a csv file) check the output if logic all correct
+    # for i in range(3): 
+    #     if i == 0:
+    #         team_info = pd.read_csv('test_cases_csv\Test_case_1_info.csv', header=None)
+    #         team_results = pd.read_csv('test_cases_csv\Test_case_1_results.csv', header=None)
+    #         print(get_rankings(team_info, team_results))
+    #     elif i == 1:
+    #         team_info = pd.read_csv('test_cases_csv\Test_case_2_info.csv', header=None)
+    #         team_results = pd.read_csv('test_cases_csv\Test_case_2_results.csv', header=None)
+    #         print(get_rankings(team_info, team_results))
+    #     elif i == 2:
+    #         team_info = pd.read_csv('test_cases_csv\Test_case_3_info.csv', header=None)
+    #         team_results = pd.read_csv('test_cases_csv\Test_case_3_results.csv', header=None)
+    #         print(get_rankings(team_info, team_results))
