@@ -1,24 +1,40 @@
 #################################### GETTING STARTED ####################################
-# To handle downloading of libaries for any new R users (like a custom pip installer)
-source("usePackages.R")
-pkgnames <-
-  c(
-    "DT",
-    "DBI",
-    "reticulate",
-    "shiny",
-    "shinyjs",
-    "tidyverse",
-    "rsconnect",
-    "shinydashboard",
-    "shinydashboardPlus"
-  )
-loadPkgs(pkgnames)
+# # Uncomment for new R user (custom installer like pip)
+# source("usePackages.R")
+# pkgnames <-
+#   c(
+#     "DT",
+#     "DBI",
+#     "reticulate",
+#     "shiny",
+#     "shinyjs",
+#     "tidyverse",
+#     "rsconnect",
+#     "shinydashboard",
+#     "shinydashboardPlus"
+#   )
+# loadPkgs(pkgnames)
 
-# Setting up python environment in R
-reticulate::virtualenv_create("env", python = "python")
-reticulate::virtualenv_install("env", packages = c("pandas"))
-reticulate::use_virtualenv("env", required = TRUE)
+library(DT)
+library(DBI)
+library(shiny)
+library(shinyjs)
+library(tidyverse)
+library(rsconnect)
+library(shinydashboard)
+library(shinydashboardPlus)
+
+PYTHON_DEPENDENCIES = c('pip','pandas')
+
+#################################### VEVN SETUP FOR PYTHON ####################################
+
+virtualenv_dir = Sys.getenv('VIRTUALENV_NAME')
+python_path = Sys.getenv('PYTHON_PATH')
+
+# Create virtual env and install dependencies
+reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
+reticulate::virtualenv_install(virtualenv_dir, packages = PYTHON_DEPENDENCIES, ignore_installed=TRUE)
+reticulate::use_virtualenv(virtualenv_dir, required = T)
 reticulate::source_python("helper.py")
 
 #################################### HELPER FUNCTIONS ####################################
@@ -63,7 +79,6 @@ WronginputModal <- function() {
         ))))
       ))
 }
-
 
 #################################### UI ####################################
 ui <- dashboardPage(
@@ -129,6 +144,7 @@ ui <- dashboardPage(
 
 #################################### SERVER ####################################
 server <- function(input, output, session) {
+  
   # Initialize server values: Only the output table values
   vals <- reactiveValues(result_values = NULL)
   
@@ -162,15 +178,11 @@ server <- function(input, output, session) {
                    df_1,
                    overwrite = TRUE,
                    row.names = FALSE)
-      print(df_1)
-      print("Sucess_1")
       dbWriteTable(conn,
                    "matches",
                    df_2,
                    overwrite = TRUE,
                    row.names = FALSE)
-      print(df_2)
-      print("Sucess_2")
       dbDisconnect(conn)
     },
     error = function(e) {

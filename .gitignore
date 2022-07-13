@@ -128,11 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# git ignore template for R
+# R
 .Rproj
 .Rhistory
 .Rdata
-.Rprofile
 .Rcheck.log
 .Rhistory.log
 .Rproj.user
+rsconnect/shinyapps.io/samuelsim/*.dcf
