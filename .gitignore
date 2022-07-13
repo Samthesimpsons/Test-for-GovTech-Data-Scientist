@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# git ignore template for R
+.Rproj
+.Rhistory
+.Rdata
+.Rprofile
+.Rcheck.log
+.Rhistory.log
+.Rproj.user
