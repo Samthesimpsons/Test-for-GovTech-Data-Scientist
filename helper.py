@@ -92,15 +92,22 @@ def get_rankings(team_info, team_results):
     # combine the two dataframes 
     group_df = group_1_df.append(group_2_df)
 
+    # append row names as a column & rearrange
+    group_df['row_name'] = group_df.index
+    group_df = group_df[['group', 'row_name', 'ranking', 'next_round', 'team_regi_date', 'team_scores','team_alt_scores','team_goals']]
+
+    # rename the columns to match the naming convention
+    group_df.columns = ['Group Number', 'Team Name','Ranking', 'Next Round','Registration Date','Scores', 'Alternative Scores', 'Total Goals']
+
     return group_df
 
 # if __name__ == '__main__':
-    # # Run our test cases (saved as a csv file) check the output if logic all correct
-    # for i in range(3): 
-    #     if i == 0:
-    #         team_info = pd.read_csv('test_cases_csv\Test_case_1_info.csv', header=None)
-    #         team_results = pd.read_csv('test_cases_csv\Test_case_1_results.csv', header=None)
-    #         print(get_rankings(team_info, team_results))
+#     # Run our test cases (saved as a csv file) check the output if logic all correct
+#     for i in range(3): 
+#         if i == 0:
+#             team_info = pd.read_csv('test_cases_csv\Test_case_1_info.csv', header=None)
+#             team_results = pd.read_csv('test_cases_csv\Test_case_1_results.csv', header=None)
+#             print(get_rankings(team_info, team_results))
     #     elif i == 1:
     #         team_info = pd.read_csv('test_cases_csv\Test_case_2_info.csv', header=None)
     #         team_results = pd.read_csv('test_cases_csv\Test_case_2_results.csv', header=None)
