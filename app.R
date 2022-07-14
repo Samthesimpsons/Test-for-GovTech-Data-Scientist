@@ -158,20 +158,18 @@ ui <- dashboardPage(
   ),
   dashboardBody(tabItems(tabItem(
     tabName = "start",
-    fluidRow(
-      useShinyjs(),
-      class = "center",
-      column(
-        width = 12,
-        h2(strong("Results of Evaluation")),
-        DTOutput("table"),
-        hidden(
-          actionButton("clear_results",
-                       h6(strong("Reset Everything")),
-                       style = "color: #fff; background-color: #AE0404; border-color: #AE0404")
-        )
-      )
-    )
+    fluidRow(useShinyjs(),
+             class = "center",
+             column(
+               width = 12,
+               h2(strong("Results of Evaluation")),
+               DTOutput("table"),
+               hidden(
+                 actionButton("clear_results",
+                              h6(strong("Reset Everything")),
+                              style = "color: #fff; background-color: #AE0404; border-color: #AE0404")
+               )
+             ))
   )))
 )
 
@@ -241,19 +239,34 @@ server <- function(input, output, session) {
     
     # Do the evaluation and render the results
     vals$result_values <- get_rankings(information, matches)
-    output$table <- renderDT(vals$result_values %>% datatable(option = list(pageLength = 12),rownames = FALSE) %>% formatStyle(
-      columns = c("Team Name", "Ranking", "Next Round"),
-      valueColumns = "Next Round",
-      color = styleEqual(c("Yes", "No"), c("green", "red"))
-    ))
+    output$table <-
+      renderDT(
+        vals$result_values %>% datatable(colnames = c(
+          'Group Number', 'Team Name','Ranking', 'Next Round','Registration Date','Scores', 'Alternative Scores', 'Total Goals'
+        ),
+        option = list(pageLength = 12), rownames = FALSE) %>%
+          formatStyle(
+            columns = c("Team Name", "Ranking", "Next Round"),
+            valueColumns = "Next Round",
+            color = styleEqual(c("Yes", "No"), c("green", "red"))
+          ) %>% 
+          formatStyle(
+            "Group Number",
+            target = "row",
+            backgroundColor = styleEqual(c(1, 2), c('white', 'lightgray'))
+          )
+      )
     shinyjs::show("clear_results")
+    if (input$check_now) show("table") else hide("table")
   })
   
   # Proceed to reset everything (REQUIREMENT 4)
   observeEvent(input$clear_results, {
     updateTextInput(session, "team_info", value = "")
     updateTextInput(session, "team_matches", value = "")
-    vals$result_values <- NULL
+    if (input$clear_results) hide("table") else show("table")
+    shinyjs::hide("check_now")
+    shinyjs::hide("clear_results")
     deleteTables()
   })
 }
