@@ -31,10 +31,10 @@ PYTHON_DEPENDENCIES = c('pip', 'pandas')
 virtualenv_dir = Sys.getenv('VIRTUALENV_NAME')
 python_path = Sys.getenv('PYTHON_PATH')
 
-# reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
-# reticulate::virtualenv_install(virtualenv_dir,
-#                                packages = PYTHON_DEPENDENCIES,
-#                                ignore_installed = TRUE)
+reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
+reticulate::virtualenv_install(virtualenv_dir,
+                               packages = PYTHON_DEPENDENCIES,
+                               ignore_installed = TRUE)
 reticulate::use_virtualenv(virtualenv_dir, required = T)
 reticulate::source_python("helper.py")
 
@@ -42,13 +42,14 @@ reticulate::source_python("helper.py")
 # SQLite Connection (Bonus Requirement 2)
 getDBConnection <- function() {
   conn <- dbConnect(RSQLite::SQLite(), dbname = "champion.db")
+  # source("setAWSPassword.R")
   # conn <- dbConnect(
   #   RMySQL::MySQL(),
   #   dbname = "championdb",
   #   host = "championdb.cvvdxaeh2ffd.ap-southeast-1.rds.amazonaws.com",
   #   port = 3306,
   #   user = "champion",
-  #   password = "championtest"
+  #   password = getOption("AWSPassword")
   # ) # Free-tier MySQL database hosted using AWS RDS (slower)
   conn
 }
@@ -198,8 +199,8 @@ server <- function(input, output, session) {
       }
       
       # Remove any empty words
-      df_1 <- df_1[!apply(df_1 == "", 1, all), ]
-      df_2 <- df_2[!apply(df_2 == "", 1, all), ]
+      df_1 <- df_1[!apply(df_1 == "", 1, all),]
+      df_2 <- df_2[!apply(df_2 == "", 1, all),]
       
       # Write to DB
       conn <- getDBConnection()
@@ -241,15 +242,25 @@ server <- function(input, output, session) {
     vals$result_values <- get_rankings(information, matches)
     output$table <-
       renderDT(
-        vals$result_values %>% datatable(colnames = c(
-          'Group Number', 'Team Name','Ranking', 'Next Round','Registration Date','Scores', 'Alternative Scores', 'Total Goals'
-        ),
-        option = list(pageLength = 12), rownames = FALSE) %>%
+        vals$result_values %>% datatable(
+          colnames = c(
+            'Group Number',
+            'Team Name',
+            'Ranking',
+            'Next Round',
+            'Registration Date',
+            'Scores',
+            'Alternative Scores',
+            'Total Goals'
+          ),
+          option = list(pageLength = 12),
+          rownames = FALSE
+        ) %>%
           formatStyle(
             columns = c("Team Name", "Ranking", "Next Round"),
             valueColumns = "Next Round",
             color = styleEqual(c("Yes", "No"), c("green", "red"))
-          ) %>% 
+          ) %>%
           formatStyle(
             "Group Number",
             target = "row",
@@ -257,14 +268,20 @@ server <- function(input, output, session) {
           )
       )
     shinyjs::show("clear_results")
-    if (input$check_now) show("table") else hide("table")
+    if (input$check_now)
+      show("table")
+    else
+      hide("table")
   })
   
   # Proceed to reset everything (REQUIREMENT 4)
   observeEvent(input$clear_results, {
     updateTextInput(session, "team_info", value = "")
     updateTextInput(session, "team_matches", value = "")
-    if (input$clear_results) hide("table") else show("table")
+    if (input$clear_results)
+      hide("table")
+    else
+      show("table")
     shinyjs::hide("check_now")
     shinyjs::hide("clear_results")
     deleteTables()
