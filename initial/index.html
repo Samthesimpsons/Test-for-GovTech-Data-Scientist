@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Champion Checker</title>
+  </head>
+
+  <body>
+    <div id="app">
+      <center>
+        <h1 style="text-align: center; color: red">We are the Champions Application</h1>
+        <strong> To help the event organisers keep track of results for the first round of the championship <br> and determine the current team rankings within each group. </strong>
+        <br />
+        <h3 style="text-align: center; color: black">1. Enter Team Information</h1>
+        <textarea style="resize: none" rows="5" v-model="information" placeholder="Details"></textarea>
+        <br />
+        <h3 style="text-align: center; color: black">2. Enter Team Matches</h1>
+        <textarea style="resize: none" rows="5" v-model="matches" placeholder="Details"></textarea>
+        <h3 style="text-align: center; color: black">3. Run the Check</h1>
+        <button v-if="allowCheck" @click="runCheck()"> Check Ranking</button>
+        <button v-if="showResults" @click="runReset()"> Reset</button>
+      </center>
+      <br />
+      
+      <hr />
+    </div>
+    
+    <script src="https://unpkg.com/vue@3"></script>
+    <script>
+      let app = Vue.createApp({
+        data: function () {
+          return {
+            showResults: false,
+            allowCheck: true
+            }
+        },
+        methods: {
+            runCheck() {
+                this.showResults = !this.showResults;
+                this.allowCheck = !this.allowCheck;
+            },
+            runReset() {
+                this.showResults = false;
+                this.allowCheck = true;
+            }
+        }
+      })
+      app.mount("#app");
+    </script>
+    <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css" />
+    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+    <py-script> print('Hello') </py-script>
+
+  </body>
+</html>
