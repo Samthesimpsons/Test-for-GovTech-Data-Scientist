@@ -6,6 +6,8 @@
 #     "DT",
 #     "DBI",
 #     "reticulate",
+#     "RMySQL"
+#     "odbc"
 #     "shiny",
 #     "shinyjs",
 #     "tidyverse",
@@ -29,10 +31,10 @@ PYTHON_DEPENDENCIES = c('pip', 'pandas')
 virtualenv_dir = Sys.getenv('VIRTUALENV_NAME')
 python_path = Sys.getenv('PYTHON_PATH')
 
-reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
-reticulate::virtualenv_install(virtualenv_dir,
-                               packages = PYTHON_DEPENDENCIES,
-                               ignore_installed = TRUE)
+# reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
+# reticulate::virtualenv_install(virtualenv_dir,
+#                                packages = PYTHON_DEPENDENCIES,
+#                                ignore_installed = TRUE)
 reticulate::use_virtualenv(virtualenv_dir, required = T)
 reticulate::source_python("helper.py")
 
@@ -40,7 +42,23 @@ reticulate::source_python("helper.py")
 # SQLite Connection (Bonus Requirement 2)
 getDBConnection <- function() {
   conn <- dbConnect(RSQLite::SQLite(), dbname = "champion.db")
+  # conn <- dbConnect(
+  #   RMySQL::MySQL(),
+  #   dbname = "championdb",
+  #   host = "championdb.cvvdxaeh2ffd.ap-southeast-1.rds.amazonaws.com",
+  #   port = 3306,
+  #   user = "champion",
+  #   password = "championtest"
+  # ) # Free-tier MySQL database hosted using AWS RDS (slower)
   conn
+}
+
+# Force close any existing connection if needed during testing stage
+dbDisconnectAll <- function() {
+  ile <- length(dbListConnections(MySQL()))
+  lapply(dbListConnections(MySQL()), function(x)
+    dbDisconnect(x))
+  cat(sprintf("%s connection(s) closed.\n", ile))
 }
 
 # Extract the tables from database
@@ -140,18 +158,20 @@ ui <- dashboardPage(
   ),
   dashboardBody(tabItems(tabItem(
     tabName = "start",
-    fluidRow(useShinyjs(),
-             class = "center",
-             column(
-               width = 12,
-               h2(strong("Results of Evaluation")),
-               tableOutput("table"),
-               hidden(
-                 actionButton("clear_results",
-                              h6(strong("Reset Everything")),
-                              style = "color: #fff; background-color: #AE0404; border-color: #AE0404")
-               )
-             ))
+    fluidRow(
+      useShinyjs(),
+      class = "center",
+      column(
+        width = 12,
+        h2(strong("Results of Evaluation")),
+        DTOutput("table"),
+        hidden(
+          actionButton("clear_results",
+                       h6(strong("Reset Everything")),
+                       style = "color: #fff; background-color: #AE0404; border-color: #AE0404")
+        )
+      )
+    )
   )))
 )
 
@@ -180,8 +200,8 @@ server <- function(input, output, session) {
       }
       
       # Remove any empty words
-      df_1 <- df_1[!apply(df_1 == "", 1, all),]
-      df_2 <- df_2[!apply(df_2 == "", 1, all),]
+      df_1 <- df_1[!apply(df_1 == "", 1, all), ]
+      df_2 <- df_2[!apply(df_2 == "", 1, all), ]
       
       # Write to DB
       conn <- getDBConnection()
@@ -221,7 +241,11 @@ server <- function(input, output, session) {
     
     # Do the evaluation and render the results
     vals$result_values <- get_rankings(information, matches)
-    output$table <- renderTable(vals$result_values)
+    output$table <- renderDT(vals$result_values %>% datatable(option = list(pageLength = 12),rownames = FALSE) %>% formatStyle(
+      columns = c("Team Name", "Ranking", "Next Round"),
+      valueColumns = "Next Round",
+      color = styleEqual(c("Yes", "No"), c("green", "red"))
+    ))
     shinyjs::show("clear_results")
   })
   
