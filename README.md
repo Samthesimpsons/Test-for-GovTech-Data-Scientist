@@ -16,6 +16,9 @@ Build an application to help the event organisers keep track of results for the 
 
 3. For the backend and front-end services, initial plan was to use `FastAPI` and `vue.js`. Nevertheless, my previous progress is still uploaded under `initial` folder. However, I am not an expert in those fields, hence I chose `RShiny` in `R`, which handles both front-end and server side. For `python` and `R` integration, we will be using the `reticulate` package.
 
+4. For bonus requirements, the text inputs have a check validity button before allowing for scoring which will display either a successful or wrong input. Note that our queries to the database is posting pushing and pulling an entire dataframe, none of the text inputs are directly used in any queries. Hence, `SQL injection` handling is not done.
+
+
 4. For bonus requirements, the web application and the SQLite database is hosted onto `shinyapps.io` free server.
 
 **Requirements:**
