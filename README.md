@@ -1,5 +1,5 @@
 # GDS-ACE-Tech-Assessment
-GDS ACE Tech Assessment TAP 2023
+GDS ACE Tech Assessment TAP 2023. My attempt did not pass to the next stage, my own understanding is because I used R instead of python. R sucks enough said.
 
 ## Details
 **Project Title:** 
